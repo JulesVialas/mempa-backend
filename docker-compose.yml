@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  server:
+    build: .
+    container_name: mempa-server
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    networks:
+      - mempa-network
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
+networks:
+  mempa-network:
+    external: true
