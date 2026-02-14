@@ -33,3 +33,20 @@ exports.getAllPlaylists = async (filterObj) => {
     const [rows] = await db.query(sql, params);
     return rows;
 };
+
+/**
+ * Crée une nouvelle playlist dans la base de données
+ */
+exports.createPlaylist = async (playlistData) => {
+    const { nom, style } = playlistData;
+    const createur_id = 1; // TODO: Récupérer l'ID du créateur à partir de l'authentification
+    const nbre_clics = 0;
+
+    const sql = `
+        INSERT INTO playlist (nom, style, nbre_clics, createur_id, date_modification) 
+        VALUES (?, ?, ?, ?, NOW())
+    `;
+
+    const [result] = await db.query(sql, [nom, style, nbre_clics, createur_id]);
+    return { id: result.insertId, nom, style };
+};
