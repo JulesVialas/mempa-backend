@@ -23,6 +23,14 @@ exports.getAll = async (req, res) => {
 exports.createPlaylist = async (req, res) => {
     try {
         // TODO createur_id doit venir de l'authentification
+        const { nom } = req.body;
+        const createur_id = 1
+        const existingPlaylist = await playlistService.findByNomAndCreateur(nom, createur_id);
+        if (existingPlaylist) {
+            return res.status(409).json({
+                error: `Une playlist avec le nom "${nom}" existe déjà pour ce créateur.`
+            });
+        }
         const newPlaylist = await playlistService.createPlaylist(req.body);
         res.status(201).json(newPlaylist);
     } catch (error) {

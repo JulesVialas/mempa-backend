@@ -35,6 +35,20 @@ exports.getAllPlaylists = async (filterObj) => {
 };
 
 /**
+ * Vérifie si une playlist existe déjà pour un créateur donné
+ */
+exports.findByNomAndCreateur = async (nom, createur_id) => {
+    const sql = `
+        SELECT * 
+        FROM playlist 
+        WHERE nom = ? 
+          AND createur_id = ?
+    `;
+    const [rows] = await db.query(sql, [nom, createur_id]);
+    return rows[0];
+};
+
+/**
  * Crée une nouvelle playlist dans la base de données
  */
 exports.createPlaylist = async (playlistData) => {
