@@ -6,6 +6,7 @@
 const express = require('express');
 const cors = require('cors');
 const playlistRoutes = require('./routes/playlistRoutes');
+const utilisateurRoutes = require('./routes/utilisateurRoutes');
 
 /** Création de l'application Express */
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 /** Routes */
 app.use('/api/playlists', playlistRoutes);
+app.use('/api/utilisateurs', utilisateurRoutes);
 
 /** Route de test */
 app.get('/', (req, res) => res.json({ status: 'API Online' }));
