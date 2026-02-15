@@ -11,9 +11,18 @@ const db = require('../config/db');
  */
 exports.getUserInfos = async (user_pseudo) => {
     let sql = `
-        SELECT u.id 
+        SELECT u.id
         FROM utilisateur u
         WHERE pseudo = ? `;
+    const [rows] = await db.query(sql, [user_pseudo]);
+    return rows[0];
+};
+
+exports.getLoginInfo = async (user_pseudo) => {
+    let sql = `
+    SELECT u.id, u.pseudo, u.mot_de_passe_hash
+    FROM utilisateur u
+    WHERE pseudo = ? `;
     const [rows] = await db.query(sql, [user_pseudo]);
     return rows[0];
 };
