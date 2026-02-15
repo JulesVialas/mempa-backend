@@ -33,3 +33,35 @@ exports.getAllPlaylists = async (filterObj) => {
     const [rows] = await db.query(sql, params);
     return rows;
 };
+
+/**
+ * Récupérer une playlist par son ID
+ * @param {number} id - L'identifiant de la playlist
+ */
+exports.getPlaylistById = async (id) => {
+    const sql = `
+        SELECT p.*, u.pseudo as nom_createur 
+        FROM playlist p 
+        JOIN utilisateur u ON p.createur_id = u.id
+        WHERE p.id = ?
+    `;
+    const [rows] = await db.query(sql, [id]);
+    return rows[0] || null;
+};
+
+/**
+ * Récupérer les morceaux d'une playlist
+ * @param {number} playlistId - L'identifiant de la playlist
+ */
+exports.getContenuPlaylist = async (playlistId) => {
+    const sql = `
+        SELECT m.* 
+        FROM morceau m
+        JOIN contenu_playlist cp ON m.id = cp.morceau_id
+        WHERE cp.playlist_id = ?
+        ORDER BY cp.ordre ASC
+    `;
+    const [rows] = await db.query(sql, [playlistId]);
+    return rows;
+};
+

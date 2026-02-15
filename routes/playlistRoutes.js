@@ -9,6 +9,8 @@ const playlistCtrl = require('../controllers/playlistController');
 
 /** Routes publiques */
 router.get('/', playlistCtrl.getAll);
+router.get('/:id', playlistCtrl.getById);
+router.get('/:id/morceaux', playlistCtrl.getContenu);
 
 /** Exportation du routeur */
 module.exports = router;
