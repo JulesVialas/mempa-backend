@@ -51,16 +51,75 @@ exports.findByNomAndCreateur = async (nom, createur_id) => {
 /**
  * Crée une nouvelle playlist dans la base de données
  */
-exports.createPlaylist = async (playlistData) => {
-    const { nom, style } = playlistData;
-    const createur_id = 1; // TODO: Récupérer l'ID du créateur à partir de l'authentification
-    const nbre_clics = 0;
+exports.createPlaylist = async (playlistData, createur_id) => {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
 
-    const sql = `
-        INSERT INTO playlist (nom, style, nbre_clics, createur_id, date_modification) 
-        VALUES (?, ?, ?, ?, NOW())
-    `;
+        // Création de la playlist
+        const [pResult] = await connection.query(
+            'INSERT INTO playlist (nom, style, createur_id, nbre_clics, date_creation, date_modification) VALUES (?, ?, ?, 0, NOW(), NOW())',
+            [playlistData.nom, playlistData.style, createur_id]
+        );
+        const playlistId = pResult.insertId;
 
-    const [result] = await db.query(sql, [nom, style, nbre_clics, createur_id]);
-    return { id: result.insertId, nom, style };
+        // Ajout des morceaux
+        if (playlistData.morceaux) {
+            for (const track of playlistData.morceaux) {
+                const morceauId = await exports.getOrCreateMorceau(connection, track);
+                await exports.lierMorceauPlaylist(connection, playlistId, morceauId);
+            }
+        }
+
+        await connection.commit();
+        return playlistId;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
+
+
+/**
+ * Ajoute un morceau à une playlist en lui assignant la position suivante disponible
+ * @param connection
+ * @param playlistId
+ * @param morceauId
+ * @returns {Promise<void>}
+ */
+exports.lierMorceauPlaylist = async (connection, playlistId, morceauId) => {
+    const sql = `
+        INSERT INTO contenu_playlist (playlist_id, morceau_id, position, date_ajout)
+        VALUES (?, ?,
+                (SELECT next_pos FROM (
+                                          SELECT COALESCE(MAX(position), 0) + 1 AS next_pos
+                                          FROM contenu_playlist
+                                          WHERE playlist_id = ?
+                                      ) AS temp),
+                NOW()
+               )
+    `;
+    await connection.query(sql, [playlistId, morceauId, playlistId]);
+}
+
+/**
+ * Récupère l'ID d'un morceau existant ou en crée un nouveau s'il n'existe pas
+ * @param connection - Connexion à la base de données
+ * @param data - Objet contenant les données du morceau (titre et artiste)
+ * @returns {Promise<number>} - ID du morceau existant ou nouvellement créé
+ */
+exports.getOrCreateMorceau = async (connection, data) => {
+    const [exist] = await connection.query(
+        'SELECT id FROM morceau WHERE titre = ? AND artiste = ?',
+        [data.titre, data.artiste]
+    );
+    if (exist.length > 0) return exist[0].id;
+
+    const [res] = await connection.query(
+        'INSERT INTO morceau (titre, artiste) VALUES (?, ?)',
+        [data.titre, data.artiste]
+    );
+    return res.insertId;
+}

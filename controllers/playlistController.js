@@ -25,15 +25,24 @@ exports.createPlaylist = async (req, res) => {
         // TODO createur_id doit venir de l'authentification
         const { nom } = req.body;
         const createur_id = 1
+
+        // Vérification de l'unicité du nom de la playlist pour ce créateur
         const existingPlaylist = await playlistService.findByNomAndCreateur(nom, createur_id);
         if (existingPlaylist) {
             return res.status(409).json({
                 error: `Une playlist avec le nom "${nom}" existe déjà pour ce créateur.`
             });
         }
-        const newPlaylist = await playlistService.createPlaylist(req.body);
-        res.status(201).json(newPlaylist);
+
+        // Création de la playlist
+        const newPlaylist = await playlistService.createPlaylist(req.body, createur_id);
+
+        res.status(201).json({
+            id: newPlaylist,
+            nom,
+            message: 'Playlist créée avec ses morceaux'
+        });
     } catch (error) {
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ error: error.message });
     }
 };
