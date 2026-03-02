@@ -22,9 +22,9 @@ exports.getAll = async (req, res) => {
  */
 exports.createPlaylist = async (req, res) => {
     try {
-        // TODO createur_id doit venir de l'authentification
         const { nom } = req.body;
-        const createur_id = 1
+        //const createur_id = 1; // Valeur temporaire pour les tests
+        const createur_id = localStorage.getItem('userId'); // Récupération de l'ID du créateur depuis le localStorage
 
         // Vérification de l'unicité du nom de la playlist pour ce créateur
         const existingPlaylist = await playlistService.findByNomAndCreateur(nom, createur_id);
